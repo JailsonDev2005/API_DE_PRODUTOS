@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 #USADO PARA INDICAR TIPO DE DADOS
 from typing import List, Optional
-#uvicorn main:app --reload
 
 app = FastAPI(title="API ferramentas")
 
