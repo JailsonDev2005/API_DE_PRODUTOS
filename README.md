@@ -1,94 +1,58 @@
-# API Ferramentas
-Uma API REST simples desenvolvida com **FastAPI** para gerenciamento de ferramentas. 
-O projeto permite cadastrar, listar, consultar, atualizar e remover ferramentas através de endpoints HTTP.
+📦 API de Produtos - FastAPI + SQLAlchemy + SQLite
 
-🚀 Tecnologias Utilizadas
-Python 3
+API REST para gerenciamento de produtos, construída com FastAPI, SQLAlchemy e SQLite, seguindo boas práticas de separação entre models, schemas e database.
+
+🚀 Tecnologias utilizadas
 FastAPI
+SQLAlchemy
 Pydantic
-Uvicorn
+SQLite (banco local)
 
-📋 Funcionalidades
-✅ Listar todas as ferramentas
-✅ Cadastrar nova ferramenta
-✅ Buscar ferramenta por ID
-✅ Atualizar ferramenta existente
-✅ Remover ferramenta
+📁 Estrutura do projeto
+.
+├── main.py
+├── database.py
+├── models.py
+├── schemas.py
+└── produtos.db
 
-📂 Estrutura dos Dados
+⚙️ Funcionalidades
 
-Cada ferramenta possui os seguintes campos:
-| Campo     | Tipo   | Descrição               |
-| --------- | ------ | ----------------------- |
-| id        | int    | Identificador único     |
-| nome      | string | Nome da ferramenta      |
-| preco     | float  | Preço da ferramenta     |
-| descricao | string | Descrição da ferramenta |
+A API permite:
 
-Exemplo
-```json
-{
-  "id": 1,
-  "nome": "Furadeira",
-  "preco": 299.90,
-  "descricao": "Furadeira elétrica profissional"
-}
-```
+Criar produtos
+Listar todos os produtos
+Buscar produto por ID
+Atualizar produto
+Deletar produto
 
-▶️ Executando a Aplicação
-Execute o servidor:
-```bash
+🗄️ Banco de dados
+
+O projeto utiliza SQLite local, criado automaticamente como:
+
+produtos.db
+
+A tabela é criada automaticamente ao iniciar a aplicação:
+
+models.Base.metadata.create_all(bind=engine)
+
+
+▶️ Como executar o projeto
+git clone <URL_DO_REPOSITORIO>
+cd <NOME_DO_PROJETO>
+
+Instale as dependências
+pip install fastapi sqlalchemy uvicorn pydantic
+
+Execute o servidor
 uvicorn main:app --reload
-```
 
-A API estará disponível em:
-```text
-http://127.0.0.1:8000
-```
+🧠 Observações técnicas
+O ORM utilizado é o SQLAlchemy
+Os schemas utilizam Pydantic com from_attributes = True
+A conexão com banco é feita via SessionLocal
+O banco é SQLite com check_same_thread=False
 
-📖 Documentação Automática
-O FastAPI gera documentação automaticamente.
-Swagger UI:
-```text
-http://127.0.0.1:8000/docs
-```
 
-🔗 Endpoints
-Listar Ferramentas
-```http
-GET /ferramentas
-```
-
-Buscar Ferramenta por ID
-```http
-GET /ferramentas/{id}
-```
-
-Adicionar Ferramenta
-```http
-POST /ferramentas
-```
-
-Exemplo de requisição:
-```json
-{
-  "nome": "Martelo",
-  "preco": 49.90,
-  "descricao": "Martelo de aço"
-}
-```
-
-Atualizar Ferramenta
-```http
-PUT /ferramentas/{id}
-```
-
-Deletar Ferramenta
-```http
-DELETE /ferramentas/{id}
-```
-
-Observação
-
-Os dados são armazenados apenas em memória utilizando uma lista Python. Ao reiniciar a aplicação, todas as informações cadastradas serão perdidas.
-Desenvolvido para fins de estudo e aprendizado com FastAPI.
+📄 Licença
+Projeto para fins de estudo e aprendizado.
