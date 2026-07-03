@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float
 from database import Base
 
+
+#CRIA UMA TABELA NO BANCO DE DADOS
 class Produto(Base):
     __tablename__ = "produtos"
 
