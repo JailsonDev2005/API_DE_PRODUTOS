@@ -1,68 +1,97 @@
-#CONTROI SISTEMAS QUE RECEBEM REQUISIÇOES
-from fastapi import FastAPI, HTTPException
-#USADO PARA VALIDAR, ORGANIZAR E TRANSFORMA DADOS AUTOMATICAMENTE
-from pydantic import BaseModel
-#USADO PARA INDICAR TIPO DE DADOS
-from typing import List, Optional
-
-app = FastAPI(title="API ferramentas")
-
-#MODELO DE DADOS
-class Ferramenta(BaseModel):
-    id:Optional[int] = None
-    nome: str
-    preco: float
-    descricao: str
-
-#LISTA PARA ARMAZENA OBJETOS 
-ferramentas: List[Ferramenta] = []
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from database import SessionLocal, engine
+import models
+import schemas
 
 
-@app.get("/ferramentas", response_model=List[Ferramenta])
-async def lista_ferramentas():
-    return ferramentas
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+#ROTA PARA MOSTRA OS PRODUTOS
+@app.get("/produtos", response_model=list[schemas.Produto])
+def lista_produtos(db: Session = Depends(get_db)):
+    return db.query(models.Produto).all()
 
 
-#ROTA ADICIONAR FERRAMENTA
-@app.post("/ferramentas", response_model=Ferramenta, status_code=201)
-async def adicionar_ferramenta(ferramenta: Ferramenta):
-    ferramenta.id = len(ferramentas) + 1
-    ferramentas.append(ferramenta)
-    return ferramenta
+#ROTA PARA CRIAS PRODUTOS
+@app.post('/produtos', response_model=schemas.Produto)
+def criar_produto(produto: schemas.ProdutoCreate, db: Session = Depends(get_db)):
 
-
-#ROTA BUSCAR FERRAMENTA POR ID
-@app.get("/ferramentas/{ferramenta_id}", response_model=Ferramenta)
-async def obter_ferramenta(ferramenta_id: int):
-    for f in ferramentas:
-        if f.id == ferramenta_id:
-            return f
-    raise HTTPException(status_code=404, detail="Ferramenta não encontrada")
-
-
-#ROTA PARA ALTERAR FERRAMENTAS
-@app.put("/ferramentas/{ferramenta_id}", response_model=Ferramenta)
-async def alterar_ferramenta(ferramenta_id: int, ferramenta_alterada: Ferramenta):
-    for index, f in enumerate(ferramentas):
-        if f.id == ferramenta_id:
-            ferramenta_alterada.id = ferramenta_id
-
-            ferramentas[index] = ferramenta_alterada
-
-            return ferramenta_alterada
-        
-    raise HTTPException(status_code=404, detail="Ferramenta não encontrada")
-
-
-#ROTA PARA DELETA
-@app.delete("/ferramentas/{ferramenta_id}", status_code=204)
-async def deletar_ferramenta(ferramenta_id: int):
-    for f in ferramentas:
-        if f.id == ferramenta_id:
-            ferramentas.remove(f)
-            return
-
-    raise HTTPException(
-        status_code=404,
-        detail="Ferramenta não encontrada"
+    novo_produto = models.Produto(
+        titulo=produto.titulo,
+        preco=produto.preco,
+        descricao=produto.descricao
     )
+
+
+    db.add(novo_produto)
+    db.commit()
+    db.refresh(novo_produto)
+
+    return novo_produto
+
+
+#ROTA BUSCA PRODUTO POR ID
+@app.get('/produtos/{produto_id}', response_model=schemas.Produto)
+def busca_produto(produto_id: int, db: Session = Depends(get_db)):
+    produto = db.query(models.Produto).filter(
+        models.Produto.id == produto_id
+    ).first()
+
+
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    
+    return produto
+
+
+
+#ROTA ATUALIZAR PRODUTO
+@app.put("/atualizar_produto/{produto_id}", response_model=schemas.Produto)
+def atualizar_produto(
+    produto_id: int,
+    produto: schemas.ProdutoCreate,
+    db: Session = Depends(get_db)
+):
+
+    produto_db = db.query(models.Produto).filter(
+        models.Produto.id == produto_id
+    ).first()
+
+    if not produto_db:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    produto_db.titulo = produto.titulo
+    produto_db.preco = produto.preco
+    produto_db.descricao = produto.descricao
+
+    db.commit()
+    db.refresh(produto_db)
+
+    return produto_db
+
+#ROTA DELETA PRODUTO
+@app.delete('/produtos/{produto_id}')
+def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
+
+    produto = db.query(models.Produto).filter(
+        models.Produto.id == produto_id
+    ).first()
+
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    
+    db.delete(produto)
+    db.commit()
+
+
+    return {"mensagem": "Produto deletado com sucesso"}
